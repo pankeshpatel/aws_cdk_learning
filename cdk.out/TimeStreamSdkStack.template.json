@@ -1,0 +1,426 @@
+{
+ "Resources": {
+  "MyTimestreamDatabase": {
+   "Type": "AWS::Timestream::Database",
+   "Properties": {
+    "DatabaseName": "MyDatabase"
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/MyTimestreamDatabase"
+   }
+  },
+  "MyTimestreamTable": {
+   "Type": "AWS::Timestream::Table",
+   "Properties": {
+    "DatabaseName": "MyDatabase",
+    "RetentionProperties": {
+     "MemoryStoreRetentionPeriodInHours": "24",
+     "MagneticStoreRetentionPeriodInDays": "7"
+    },
+    "TableName": "MyTable"
+   },
+   "DependsOn": [
+    "MyTimestreamDatabase"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/MyTimestreamTable"
+   }
+  },
+  "IoTLambdaHandlerServiceRole7E48499D": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/Resource"
+   }
+  },
+  "IoTLambdaHandlerServiceRoleDefaultPolicy2D33D0C8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "timestream:DescribeEndpoints",
+        "timestream:WriteRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "IoTLambdaHandlerServiceRoleDefaultPolicy2D33D0C8",
+    "Roles": [
+     {
+      "Ref": "IoTLambdaHandlerServiceRole7E48499D"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "IoTLambdaHandler37AABE8F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "TIMESTREAM_DATABASE_NAME": "MyDatabase",
+      "TIMESTREAM_TABLE_NAME": "MyTable"
+     }
+    },
+    "Handler": "iot_lambda.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "IoTLambdaHandlerServiceRole7E48499D",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.10"
+   },
+   "DependsOn": [
+    "IoTLambdaHandlerServiceRoleDefaultPolicy2D33D0C8",
+    "IoTLambdaHandlerServiceRole7E48499D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/IoTLambdaHandler/Resource",
+    "aws:asset:path": "asset.2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "IoTLambdaHandlerAllowIoTInvoke7DC6D796": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "IoTLambdaHandler37AABE8F",
+      "Arn"
+     ]
+    },
+    "Principal": "iot.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "IoTTopicRule",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/IoTLambdaHandler/AllowIoTInvoke"
+   }
+  },
+  "IoTTopicRule": {
+   "Type": "AWS::IoT::TopicRule",
+   "Properties": {
+    "RuleName": "IoTDataToTimestream",
+    "TopicRulePayload": {
+     "Actions": [
+      {
+       "Lambda": {
+        "FunctionArn": {
+         "Fn::GetAtt": [
+          "IoTLambdaHandler37AABE8F",
+          "Arn"
+         ]
+        }
+       }
+      }
+     ],
+     "Sql": "SELECT * FROM 'iot/topic/test'"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/IoTTopicRule"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/01PQW7DMAx7S++OtiaHntcMOwfp7oXiKJ0WRx4iGUUR5O+FPQzYiQRIkVQNx+YErwe8a+XHuQo8wHYx9LPDu14344XUVsIFtnaSdzQcUMm1k3ziEGh3AZdhRNg+knjjKFn6zztaF1blKLvjHNPHUO4LdjGwfxRfYbvT5oqqZApvGZw2cE5+JjvnXo4GuTv+sO9T7u9JY1o9uWK/GN5YbiX/T2gnaaOMbGVD97CvKC8NHGuoD9/KXK1J8p/Q/+ITDtoY7hQBAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "TimeStreamSdkStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,113 @@
+{
+  "version": "36.0.0",
+  "artifacts": {
+    "TimeStreamSdkStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "TimeStreamSdkStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "TimeStreamSdkStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "TimeStreamSdkStack.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/65b4dcc1a7371f9e808738008034a62d4fe2bdb7f394daa2a241b7c86f597854.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "TimeStreamSdkStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "TimeStreamSdkStack.assets"
+      ],
+      "metadata": {
+        "/TimeStreamSdkStack/MyTimestreamDatabase": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MyTimestreamDatabase"
+          }
+        ],
+        "/TimeStreamSdkStack/MyTimestreamTable": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MyTimestreamTable"
+          }
+        ],
+        "/TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTLambdaHandlerServiceRole7E48499D"
+          }
+        ],
+        "/TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTLambdaHandlerServiceRoleDefaultPolicy2D33D0C8"
+          }
+        ],
+        "/TimeStreamSdkStack/IoTLambdaHandler/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTLambdaHandler37AABE8F"
+          }
+        ],
+        "/TimeStreamSdkStack/IoTLambdaHandler/AllowIoTInvoke": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTLambdaHandlerAllowIoTInvoke7DC6D796"
+          }
+        ],
+        "/TimeStreamSdkStack/IoTTopicRule": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTTopicRule"
+          }
+        ],
+        "/TimeStreamSdkStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/TimeStreamSdkStack/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable"
+          }
+        ],
+        "/TimeStreamSdkStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/TimeStreamSdkStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "TimeStreamSdkStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

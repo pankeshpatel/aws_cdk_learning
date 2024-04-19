@@ -1,0 +1,32 @@
+{
+  "version": "36.0.0",
+  "files": {
+    "2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb": {
+      "source": {
+        "path": "asset.2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb.zip",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    },
+    "65b4dcc1a7371f9e808738008034a62d4fe2bdb7f394daa2a241b7c86f597854": {
+      "source": {
+        "path": "TimeStreamSdkStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "65b4dcc1a7371f9e808738008034a62d4fe2bdb7f394daa2a241b7c86f597854.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

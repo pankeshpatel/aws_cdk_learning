@@ -1,0 +1,330 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "TimeStreamSdkStack": {
+        "id": "TimeStreamSdkStack",
+        "path": "TimeStreamSdkStack",
+        "children": {
+          "MyTimestreamDatabase": {
+            "id": "MyTimestreamDatabase",
+            "path": "TimeStreamSdkStack/MyTimestreamDatabase",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::Timestream::Database",
+              "aws:cdk:cloudformation:props": {
+                "databaseName": "MyDatabase"
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_timestream.CfnDatabase",
+              "version": "2.137.0"
+            }
+          },
+          "MyTimestreamTable": {
+            "id": "MyTimestreamTable",
+            "path": "TimeStreamSdkStack/MyTimestreamTable",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::Timestream::Table",
+              "aws:cdk:cloudformation:props": {
+                "databaseName": "MyDatabase",
+                "retentionProperties": {
+                  "MemoryStoreRetentionPeriodInHours": "24",
+                  "MagneticStoreRetentionPeriodInDays": "7"
+                },
+                "tableName": "MyTable"
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_timestream.CfnTable",
+              "version": "2.137.0"
+            }
+          },
+          "IoTLambdaHandler": {
+            "id": "IoTLambdaHandler",
+            "path": "TimeStreamSdkStack/IoTLambdaHandler",
+            "children": {
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole",
+                "children": {
+                  "ImportServiceRole": {
+                    "id": "ImportServiceRole",
+                    "path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/ImportServiceRole",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.137.0"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.137.0"
+                    }
+                  },
+                  "DefaultPolicy": {
+                    "id": "DefaultPolicy",
+                    "path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/DefaultPolicy",
+                    "children": {
+                      "Resource": {
+                        "id": "Resource",
+                        "path": "TimeStreamSdkStack/IoTLambdaHandler/ServiceRole/DefaultPolicy/Resource",
+                        "attributes": {
+                          "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                          "aws:cdk:cloudformation:props": {
+                            "policyDocument": {
+                              "Statement": [
+                                {
+                                  "Action": [
+                                    "timestream:DescribeEndpoints",
+                                    "timestream:WriteRecords"
+                                  ],
+                                  "Effect": "Allow",
+                                  "Resource": "*"
+                                }
+                              ],
+                              "Version": "2012-10-17"
+                            },
+                            "policyName": "IoTLambdaHandlerServiceRoleDefaultPolicy2D33D0C8",
+                            "roles": [
+                              {
+                                "Ref": "IoTLambdaHandlerServiceRole7E48499D"
+                              }
+                            ]
+                          }
+                        },
+                        "constructInfo": {
+                          "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                          "version": "2.137.0"
+                        }
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.Policy",
+                      "version": "2.137.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.137.0"
+                }
+              },
+              "Code": {
+                "id": "Code",
+                "path": "TimeStreamSdkStack/IoTLambdaHandler/Code",
+                "children": {
+                  "Stage": {
+                    "id": "Stage",
+                    "path": "TimeStreamSdkStack/IoTLambdaHandler/Code/Stage",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.137.0"
+                    }
+                  },
+                  "AssetBucket": {
+                    "id": "AssetBucket",
+                    "path": "TimeStreamSdkStack/IoTLambdaHandler/Code/AssetBucket",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_s3.BucketBase",
+                      "version": "2.137.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3_assets.Asset",
+                  "version": "2.137.0"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "TimeStreamSdkStack/IoTLambdaHandler/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                  "aws:cdk:cloudformation:props": {
+                    "code": {
+                      "s3Bucket": {
+                        "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+                      },
+                      "s3Key": "2480205cd0e35a53ff506974a5619c5db1cd7f3cca2107ff2434ddc43348cddb.zip"
+                    },
+                    "environment": {
+                      "variables": {
+                        "TIMESTREAM_DATABASE_NAME": "MyDatabase",
+                        "TIMESTREAM_TABLE_NAME": "MyTable"
+                      }
+                    },
+                    "handler": "iot_lambda.handler",
+                    "role": {
+                      "Fn::GetAtt": [
+                        "IoTLambdaHandlerServiceRole7E48499D",
+                        "Arn"
+                      ]
+                    },
+                    "runtime": "python3.10"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                  "version": "2.137.0"
+                }
+              },
+              "AllowIoTInvoke": {
+                "id": "AllowIoTInvoke",
+                "path": "TimeStreamSdkStack/IoTLambdaHandler/AllowIoTInvoke",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Permission",
+                  "aws:cdk:cloudformation:props": {
+                    "action": "lambda:InvokeFunction",
+                    "functionName": {
+                      "Fn::GetAtt": [
+                        "IoTLambdaHandler37AABE8F",
+                        "Arn"
+                      ]
+                    },
+                    "principal": "iot.amazonaws.com",
+                    "sourceArn": {
+                      "Fn::GetAtt": [
+                        "IoTTopicRule",
+                        "Arn"
+                      ]
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnPermission",
+                  "version": "2.137.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.Function",
+              "version": "2.137.0"
+            }
+          },
+          "IoTTopicRule": {
+            "id": "IoTTopicRule",
+            "path": "TimeStreamSdkStack/IoTTopicRule",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::IoT::TopicRule",
+              "aws:cdk:cloudformation:props": {
+                "ruleName": "IoTDataToTimestream",
+                "topicRulePayload": {
+                  "actions": [
+                    {
+                      "lambda": {
+                        "functionArn": {
+                          "Fn::GetAtt": [
+                            "IoTLambdaHandler37AABE8F",
+                            "Arn"
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "sql": "SELECT * FROM 'iot/topic/test'"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_iot.CfnTopicRule",
+              "version": "2.137.0"
+            }
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "TimeStreamSdkStack/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "TimeStreamSdkStack/CDKMetadata/Default",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.137.0"
+                }
+              },
+              "Condition": {
+                "id": "Condition",
+                "path": "TimeStreamSdkStack/CDKMetadata/Condition",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnCondition",
+                  "version": "2.137.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.3.0"
+            }
+          },
+          "BootstrapVersion": {
+            "id": "BootstrapVersion",
+            "path": "TimeStreamSdkStack/BootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnParameter",
+              "version": "2.137.0"
+            }
+          },
+          "CheckBootstrapVersion": {
+            "id": "CheckBootstrapVersion",
+            "path": "TimeStreamSdkStack/CheckBootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnRule",
+              "version": "2.137.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.137.0"
+        }
+      },
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.3.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.137.0"
+    }
+  }
+}
