@@ -6,8 +6,6 @@ from aws_cdk import aws_timestream as timestream
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_iot as iot
 from aws_cdk import aws_iam
-from aws_cdk import aws_kms
-
 
 class TimeStreamSdkStack(Stack):
 
@@ -16,64 +14,85 @@ class TimeStreamSdkStack(Stack):
 
         # The code that defines your stack goes here
 
-       # Create a Timestream database
+        # Create a Timestream database
         self.timestream_database = timestream.CfnDatabase(
-            self, "MyTimestreamDatabase",
-            database_name="MyDatabase")
+            self, "canopyData",
+            database_name="canopyData")
 
         # Create a Timestream table within the database
-        self.timestream_table = timestream.CfnTable(
-            self, "MyTimestreamTable",
+        self.energystate_table = timestream.CfnTable(
+            self, "energyStateTable",
             database_name=self.timestream_database.database_name,
-            table_name="MyTable",
-            retention_properties={
-                "MemoryStoreRetentionPeriodInHours": "24",
-                "MagneticStoreRetentionPeriodInDays": "7"
-            }
+            table_name="energyStateTable"
         )
 
-         # Ensure the table creation waits for the database creation
-        self.timestream_table.add_depends_on(self.timestream_database)
+        self.lightstate_table = timestream.CfnTable(
+            self, "lightStateTable",
+            database_name=self.timestream_database.database_name,
+            table_name="lightStateTable"
+        )
 
-        # Lambda function to process IoT messages
-        self.lambda_function = lambda_.Function(
-            self, "IoTLambdaHandler",
+        # Ensure the table creation waits for the database creation
+        self.energystate_table.add_depends_on(self.timestream_database)
+        self.lightstate_table.add_depends_on(self.timestream_database)
+
+        # Lambda function to process energy state data
+        self.upstream_lambda = lambda_.Function(
+            self, "upstream_lambda_handler",
             runtime=lambda_.Runtime.PYTHON_3_10,
-            handler="iot_lambda.handler",  # Assumes a file iot_lambda.py with a function handler
+            handler="upstream_lambda.handler",
             code=lambda_.Code.from_asset("lambda"),
             environment=dict(
-                TIMESTREAM_DATABASE_NAME=self.timestream_database.database_name,  # Required
-                TIMESTREAM_TABLE_NAME=self.timestream_table.table_name,  # Required
-            )
+                TIMESTREAM_DATABASE_NAME=self.timestream_database.database_name,
+                TIMESTREAM_ENERGYSTATE_TABLE_NAME=self.energystate_table.table_name,
+                TIMESTREAM_LIGHTSTATE_TABLE_NAME=self.lightstate_table.table_name
+            ),
+            function_name=f"upstream_lambda",
         )
-
-        # IoT rule that triggers the Lambda function
-        self.topic_rule = iot.CfnTopicRule(
-            self, "IoTTopicRule",
-            rule_name="IoTDataToTimestream",
+    
+        # IoT rule that triggers the energystate lambda function
+        # electric-outdoors/iot/canopy1/upstream/energy-state
+        self.upstream_rule = iot.CfnTopicRule(
+            self, "upstream_rule",
+            rule_name="upstream_rule",  # Required
             topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
-                sql="SELECT * FROM 'iot/topic/test'",
+                sql="SELECT *, topic() as topic FROM 'electric-outdoors/iot/+/upstream/+'",
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         lambda_=iot.CfnTopicRule.LambdaActionProperty(
-                            function_arn=self.lambda_function.function_arn
+                            function_arn=self.upstream_lambda.function_arn
                         )
                     )
                 ]
             )
         )
 
-       # Grant the Lambda function permissions to write to Timestream
-        # Add permission to the Lambda's role to access Timestream
-        self.lambda_function.role.add_to_policy(aws_iam.PolicyStatement(
-            actions=["timestream:WriteRecords", "timestream:DescribeEndpoints"],
-            resources=["*"]  # Ideally, specify more restricted resources if possible
-        ))
-
-        # Grant the IoT service permission to invoke the Lambda function
-        self.lambda_function.add_permission(
-            "AllowIoTInvoke",
+        # Grant the IoT service permission to invoke the EnergyStateLambda  function
+        self.upstream_lambda.add_permission(
+            "AllowToInvoke",
             principal= aws_iam.ServicePrincipal("iot.amazonaws.com"),
             action="lambda:InvokeFunction",
-            source_arn=self.topic_rule.attr_arn
+            source_arn=self.upstream_rule.attr_arn
         )
+
+        # # Grant the IoT service permission to invoke the Lambda function
+        # self.lambda_function.add_permission(
+        #     "AllowToInvoke",
+        #     principal= aws_iam.ServicePrincipal("iot.amazonaws.com"),
+        #     action="lambda:InvokeFunction",
+        #     source_arn=self.topic_rule.attr_arn
+        # )
+        
+
+        self.upstream_lambda.role.add_to_policy(aws_iam.PolicyStatement(
+            actions=["timestream:WriteRecords", "timestream:DescribeEndpoints"],
+            resources=["*"]
+        ))
+
+        # # Add permission to the Lambda's role to access Timestream
+        # self.lambda_function.role.add_to_policy(aws_iam.PolicyStatement(
+        #     actions=["timestream:WriteRecords", "timestream:DescribeEndpoints"],
+        #     resources=["*"]  # Ideally, specify more restricted resources if possible
+        # ))
+
+        
