@@ -88,11 +88,3 @@ class TimeStreamSdkStack(Stack):
             actions=["timestream:WriteRecords", "timestream:DescribeEndpoints"],
             resources=["*"]
         ))
-
-        # # Add permission to the Lambda's role to access Timestream
-        # self.lambda_function.role.add_to_policy(aws_iam.PolicyStatement(
-        #     actions=["timestream:WriteRecords", "timestream:DescribeEndpoints"],
-        #     resources=["*"]  # Ideally, specify more restricted resources if possible
-        # ))
-
-        
