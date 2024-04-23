@@ -21,9 +21,9 @@ class TimeStreamSdkStack(Stack):
 
         # Create a Timestream table within the database
         self.electric_outdoor_table = timestream.CfnTable(
-            self, "electricOutdoorIngestion",
+            self, "IngestionTable",
             database_name=self.timestream_database.database_name,
-            table_name="electricOutdoorIngestion"
+            table_name="IngestionTable"
         )
 
         # Ensure the table creation waits for the database creation
@@ -32,7 +32,7 @@ class TimeStreamSdkStack(Stack):
         # Lambda function to process energy state data
         self.ingestion_lambda = lambda_.Function(
             self, "ingestion_lambda_handler",
-            runtime=lambda_.Runtime.PYTHON_3_10,
+            runtime=lambda_.Runtime.PYTHON_3_12,
             handler="ingestion_lambda.handler",
             code=lambda_.Code.from_asset("lambda"),
             environment=dict(
@@ -48,7 +48,8 @@ class TimeStreamSdkStack(Stack):
             self, "electric_outdoor_ingestion_rule",
             rule_name="electric_outdoor_ingestion_rule",  # Required
             topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
-                sql="SELECT * FROM 'electric-outdoors/iot/+/upstream/+'",
+                sql="SELECT *, topic(3) as canopy_id, topic(5) as message_type FROM 'electric-outdoors/iot/+/upstream/+'",
+                aws_iot_sql_version="2016-03-23",  # Specify the SQL version here
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         lambda_=iot.CfnTopicRule.LambdaActionProperty(
@@ -58,6 +59,7 @@ class TimeStreamSdkStack(Stack):
                 ]
             )
         )
+
 
         # Grant the IoT service permission to invoke the EnergyStateLambda  function
         self.ingestion_lambda.add_permission(
